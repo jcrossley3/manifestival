@@ -9,7 +9,7 @@ import (
 )
 
 func TestFinding(t *testing.T) {
-	f, err := NewYamlManifest("testdata/", true, nil)
+	f, err := NewYamlManifest("../../testdata/", true, nil)
 	if err != nil {
 		t.Errorf("NewYamlManifest() = %v, wanted no error", err)
 	}

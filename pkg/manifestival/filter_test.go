@@ -9,7 +9,7 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	f, err := NewYamlManifest("testdata/tree", true, nil)
+	f, err := NewYamlManifest("../../testdata/tree", true, nil)
 	if err != nil {
 		t.Errorf("NewYamlManifest() = %v, wanted no error", err)
 	}
@@ -41,7 +41,7 @@ func TestFilter(t *testing.T) {
 }
 
 func TestFilterCombo(t *testing.T) {
-	f, err := NewYamlManifest("testdata/tree", true, nil)
+	f, err := NewYamlManifest("../../testdata/tree", true, nil)
 	if err != nil {
 		t.Errorf("NewYamlManifest() = %v, wanted no error", err)
 	}
@@ -70,7 +70,7 @@ func TestByNamespace(t *testing.T) {
 			t.Errorf("Expected '%s', got '%s'", expected, ns)
 		}
 	}
-	f, _ := NewYamlManifest("testdata/crb.yaml", true, nil)
+	f, _ := NewYamlManifest("../../testdata/crb.yaml", true, nil)
 	x := f.Filter(ByNamespace("foo")).DeepCopyResources()
 	assert(x[0], "foo")
 	os.Setenv("FOO", "foo")
