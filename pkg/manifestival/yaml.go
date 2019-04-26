@@ -128,6 +128,12 @@ func decode(reader io.Reader) ([]unstructured.Unstructured, error) {
 
 // isURL checks whether or not the given path parses as a URL.
 func isURL(pathname string) bool {
-	_, err := url.ParseRequestURI(pathname)
-	return err == nil
+	uri, err := url.ParseRequestURI(pathname)
+	if err != nil {
+		return false
+	}
+	if uri.Scheme == "" {
+		return false
+	}
+	return true
 }

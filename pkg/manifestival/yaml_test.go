@@ -36,6 +36,10 @@ func TestParsing(t *testing.T) {
 		name:      "missing file",
 		path:      "../../testdata/missing",
 		wantError: true,
+	},{
+		name:      "abs file",
+		path:      "/testdata/missing",
+		wantError: true,
 	}, {
 		name: "url",
 		path: "https://raw.githubusercontent.com/jcrossley3/manifestival/master/testdata/tree/file.yaml",
