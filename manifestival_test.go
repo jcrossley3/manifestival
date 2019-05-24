@@ -140,6 +140,24 @@ func TestUpdateChanges(t *testing.T) {
 			},
 		},
 	}, {
+		name:    "don't change if src is a subset of tgt",
+		changed: false,
+		src: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{"1"},
+			},
+		},
+		tgt: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{"1", "2"},
+			},
+		},
+		want: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{"1", "2"},
+			},
+		},
+	}, {
 		name:    "update nested slice entry",
 		changed: true,
 		src: map[string]interface{}{

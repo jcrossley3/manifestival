@@ -141,18 +141,35 @@ func (f *Manifest) Find(apiVersion string, kind string, name string) *unstructur
 func UpdateChanged(src, tgt map[string]interface{}) bool {
 	changed := false
 	for k, v := range src {
-		if v, ok := v.(map[string]interface{}); ok {
-			if tgt[k] == nil {
-				tgt[k], changed = v, true
-			} else if UpdateChanged(v, tgt[k].(map[string]interface{})) {
+		if tgt[k] == nil {
+			tgt[k], changed = v, true
+			continue
+		}
+		switch v := v.(type) {
+		case map[string]interface{}:
+			if UpdateChanged(v, tgt[k].(map[string]interface{})) {
 				// This could be an issue if a field in a nested src
 				// map doesn't overwrite its corresponding tgt
 				changed = true
 			}
-			continue
-		}
-		if !equality.Semantic.DeepEqual(v, tgt[k]) {
-			tgt[k], changed = v, true
+		case []interface{}:
+			target := tgt[k].([]interface{})
+			for _, i := range v {
+				found := false
+				for _, j := range target {
+					if equality.Semantic.DeepEqual(i, j) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					tgt[k], changed = v, true
+				}
+			}
+		default:
+			if !equality.Semantic.DeepEqual(v, tgt[k]) {
+				tgt[k], changed = v, true
+			}
 		}
 	}
 	return changed
