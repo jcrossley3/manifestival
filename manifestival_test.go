@@ -212,6 +212,24 @@ func TestUpdateChanges(t *testing.T) {
 				"y": []interface{}{map[string]interface{}{"foo": "bar"}},
 			},
 		},
+	}, {
+		name:    "don't change map within list",
+		changed: false,
+		src: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{map[string]interface{}{"foo": "baz"}},
+			},
+		},
+		tgt: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{map[string]interface{}{"foo": "baz", "one": 1}},
+			},
+		},
+		want: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": []interface{}{map[string]interface{}{"foo": "baz", "one": 1}},
+			},
+		},
 	}}
 
 	for _, test := range tests {

@@ -156,10 +156,18 @@ func UpdateChanged(src, tgt map[string]interface{}) bool {
 			target := tgt[k].([]interface{})
 			for _, i := range v {
 				found := false
+				m, ok := i.(map[string]interface{})
 				for _, j := range target {
-					if equality.Semantic.DeepEqual(i, j) {
-						found = true
-						break
+					if ok {
+						if !UpdateChanged(m, j.(map[string]interface{})) {
+							found = true
+							break
+						}
+					} else {
+						if equality.Semantic.DeepEqual(i, j) {
+							found = true
+							break
+						}
 					}
 				}
 				if !found {
