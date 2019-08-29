@@ -28,6 +28,9 @@ type Manifestival interface {
 	Get(spec *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	// Transforms the resources within a Manifest
 	Transform(fns ...Transformer) error
+
+	//Reparse parses the pathname again to rebuild the Resources cache
+	Reparse(pathname string, recursive bool) error
 }
 
 type Manifest struct {
@@ -122,6 +125,16 @@ func (f *Manifest) Get(spec *unstructured.Unstructured) (*unstructured.Unstructu
 		}
 	}
 	return result, err
+}
+
+func (f *Manifest) Reparse(pathname string, recursive bool) error {
+	log.Info("Reading file", "name", pathname)
+	resources, err := Parse(pathname, recursive)
+	if err == nil {
+		log.Info("Parsed the resources: ", "path", pathname)
+		f.Resources = resources
+	}
+	return err
 }
 
 // We need to preserve the top-level target keys, specifically
