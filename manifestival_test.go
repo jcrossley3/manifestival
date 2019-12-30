@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/jcrossley3/manifestival"
+	. "github.com/kabanero-io/manifestival"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

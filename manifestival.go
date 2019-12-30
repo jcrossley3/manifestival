@@ -16,21 +16,26 @@ var (
 	log = logf.Log.WithName("manifestival")
 )
 
+// Manifestival allows group application of a set of Kubernetes resources
+// (typically, a set of YAML files, aka a manifest) against a Kubernetes
+// apiserver.
 type Manifestival interface {
 	// Either updates or creates all resources in the manifest
 	ApplyAll() error
 	// Updates or creates a particular resource
 	Apply(*unstructured.Unstructured) error
 	// Deletes all resources in the manifest
-	DeleteAll(opts ...client.DeleteOptionFunc) error
+	DeleteAll(opts ...client.DeleteOption) error
 	// Deletes a particular resource
-	Delete(spec *unstructured.Unstructured, opts ...client.DeleteOptionFunc) error
+	Delete(spec *unstructured.Unstructured, opts ...client.DeleteOption) error
 	// Returns a copy of the resource from the api server, nil if not found
 	Get(spec *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	// Transforms the resources within a Manifest
 	Transform(fns ...Transformer) error
 }
 
+// Manifest tracks a set of concrete resources which should be managed as a
+// group using a Kubernetes client provided by `NewManifest`.
 type Manifest struct {
 	Resources []unstructured.Unstructured
 	client    client.Client
@@ -38,6 +43,10 @@ type Manifest struct {
 
 var _ Manifestival = &Manifest{}
 
+// NewManifest creates a Manifest from a comma-separated set of yaml files or
+// directories (and subdirectories if the `recursive` option is set). The
+// Manifest will be evaluated using the supplied `client` against a particular
+// Kubernetes apiserver.
 func NewManifest(pathname string, recursive bool, client client.Client) (Manifest, error) {
 	log.Info("Reading file", "name", pathname)
 	resources, err := Parse(pathname, recursive)
@@ -59,6 +68,7 @@ func FromReader(r io.Reader, client client.Client) (Manifest, error) {
 	return Manifest{Resources: resources, client: client}, nil
 }
 
+// ApplyAll updates or creates all resources in the manifest.
 func (f *Manifest) ApplyAll() error {
 	for _, spec := range f.Resources {
 		if err := f.Apply(&spec); err != nil {
@@ -68,6 +78,8 @@ func (f *Manifest) ApplyAll() error {
 	return nil
 }
 
+// Apply updates or creates a particular resource, which does not need to be
+// part of `Resources`, and will not be tracked.
 func (f *Manifest) Apply(spec *unstructured.Unstructured) error {
 	current, err := f.Get(spec)
 	if err != nil {
@@ -91,7 +103,8 @@ func (f *Manifest) Apply(spec *unstructured.Unstructured) error {
 	return nil
 }
 
-func (f *Manifest) DeleteAll(opts ...client.DeleteOptionFunc) error {
+// DeleteAll removes all tracked `Resources` in the Manifest.
+func (f *Manifest) DeleteAll(opts ...client.DeleteOption) error {
 	a := make([]unstructured.Unstructured, len(f.Resources))
 	copy(a, f.Resources)
 	// we want to delete in reverse order
@@ -108,7 +121,9 @@ func (f *Manifest) DeleteAll(opts ...client.DeleteOptionFunc) error {
 	return nil
 }
 
-func (f *Manifest) Delete(spec *unstructured.Unstructured, opts ...client.DeleteOptionFunc) error {
+// Delete removes the specified objects, which do not need to be registered as
+// `Resources` in the Manifest.
+func (f *Manifest) Delete(spec *unstructured.Unstructured, opts ...client.DeleteOption) error {
 	current, err := f.Get(spec)
 	if current == nil && err == nil {
 		return nil
@@ -123,6 +138,8 @@ func (f *Manifest) Delete(spec *unstructured.Unstructured, opts ...client.Delete
 	return nil
 }
 
+// Get collects a full resource body (or `nil`) from a partial resource
+// supplied in `spec`.
 func (f *Manifest) Get(spec *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	key := client.ObjectKey{Namespace: spec.GetNamespace(), Name: spec.GetName()}
 	result := &unstructured.Unstructured{}
@@ -137,6 +154,8 @@ func (f *Manifest) Get(spec *unstructured.Unstructured) (*unstructured.Unstructu
 	return result, err
 }
 
+// UpdateChanged recursively merges JSON-style values in `src` into `tgt`.
+// 
 // We need to preserve the top-level target keys, specifically
 // 'metadata.resourceVersion', 'spec.clusterIP', and any existing
 // entries in a ConfigMap's 'data' field. So we only overwrite fields
