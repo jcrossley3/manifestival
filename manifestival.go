@@ -3,6 +3,7 @@ package manifestival
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -49,6 +50,18 @@ var _ Manifestival = &Manifest{}
 func NewManifest(pathname string, recursive bool, client client.Client) (Manifest, error) {
 	log.Info("Reading file", "name", pathname)
 	resources, err := Parse(pathname, recursive)
+	if err != nil {
+		return Manifest{}, err
+	}
+	return Manifest{Resources: resources, client: client}, nil
+}
+
+func FromResources(resources []unstructured.Unstructured, client client.Client) (Manifest, error) {
+	return Manifest{Resources: resources, client: client}, nil
+}
+
+func FromReader(r io.Reader, client client.Client) (Manifest, error) {
+	resources, err := decode(r)
 	if err != nil {
 		return Manifest{}, err
 	}

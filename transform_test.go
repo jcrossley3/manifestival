@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/jcrossley3/manifestival"
+	. "github.com/kabanero-io/manifestival"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
